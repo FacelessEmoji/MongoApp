@@ -1,13 +1,19 @@
 package rut.miit.mongoapp;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import rut.miit.mongoapp.controllers.CityController;
 import rut.miit.mongoapp.models.City;
 import rut.miit.mongoapp.repositories.CityRepository;
 
+
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -94,7 +100,58 @@ public class CityControllerTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @Order(5) // или другой порядковый номер, в зависимости от ваших потребностей
+    public void testCreateCity() throws Exception {
+        String cityJson = """
+    {
+        "name": "Phoenix",
+        "population": 1680992,
+        "landmark": "Camelback Mountain",
+        "age": 155
+    }
+    """;
 
+        mockMvc.perform(post("/api/cities")
+                        .contentType("application/json")
+                        .content(cityJson))
+                .andExpect(status().isOk());
 
+        // Проверка, что город был действительно создан
+        City createdCity = cityRepository.findByName("Phoenix");
+        Assertions.assertNotNull(createdCity);
+        Assertions.assertEquals(1680992, createdCity.getPopulation());
+        Assertions.assertEquals("Camelback Mountain", createdCity.getLandmark());
+        Assertions.assertEquals(155, createdCity.getAge());
+    }
+
+    @Test
+    @Order(6) // или другой порядковый номер, в зависимости от ваших потребностей
+    public void testDeleteCity() throws Exception {
+        City phoenix = cityRepository.findByName("Phoenix");
+        Assertions.assertNotNull(phoenix);  // Убедитесь, что город Phoenix существует перед удалением
+
+        String cityId = phoenix.getId();
+
+        mockMvc.perform(delete("/api/cities/" + cityId))
+                .andExpect(status().isNoContent());
+
+        // Проверка, что город действительно был удален
+        City deletedCity = cityRepository.findById(cityId).orElse(null);
+        Assertions.assertNull(deletedCity);
+    }
+
+    @Test
+    @Order(7)
+    public void testGetAveragePopulation() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/cities/averagePopulation"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseBody = result.getResponse().getContentAsString();
+        double averagePopulation = Double.parseDouble(responseBody);
+
+        Assertions.assertEquals(2185000.0, averagePopulation, 0.1); // добавляем небольшой дельта
+    }
 }
 
