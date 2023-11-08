@@ -21,12 +21,19 @@ public class Person extends BaseEntity{
     @Field(name="gender")
     private String gender;
 
-    // Связь с питомцем
-    @Field(name="petId")
-    private String petId;
+    @DBRef
+    private City city;
 
-    // Связь с городом
-    @Field(name="cityId")
-    private String cityId;
+    @DBRef
+    private Pet pet;
 }
+//
+//    // Связь с питомцем
+//    @Field(name="petId")
+//    private String petId;
+//
+//    // Связь с городом
+//    @Field(name="cityId")
+//    private String cityId;
+
 

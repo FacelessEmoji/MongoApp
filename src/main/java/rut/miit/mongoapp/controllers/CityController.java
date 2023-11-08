@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rut.miit.mongoapp.models.City;
+import rut.miit.mongoapp.models.Person;
 import rut.miit.mongoapp.repositories.CityRepository;
+import rut.miit.mongoapp.repositories.PersonRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +25,9 @@ public class CityController {
 
     @Autowired
     private CityRepository cityRepository;
+
+    @Autowired
+    private PersonRepository personRepository;
 
     @GetMapping
     public List<City> getAllCities() {
@@ -57,12 +62,17 @@ public class CityController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCity(@PathVariable String id) {
         if (cityRepository.existsById(id)) {
+            // Удаление связанных людей
+            List<Person> peopleInCity = personRepository.findByCityId(id);
+            personRepository.deleteAll(peopleInCity);
+            // Затем удаление города
             cityRepository.deleteById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
 
 
     @GetMapping("/averagePopulation")
