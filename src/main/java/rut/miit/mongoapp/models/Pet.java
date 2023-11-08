@@ -7,10 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 @Data
 @Document(collection = "pets")
-public class Pet {
-    @Id
-    private String id;
-
+public class Pet extends BaseEntity{
     @Field(name="name")
     private String name;
 
